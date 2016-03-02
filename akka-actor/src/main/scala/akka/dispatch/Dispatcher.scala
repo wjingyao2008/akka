@@ -11,6 +11,7 @@ import akka.dispatch.sysmsg.SystemMessage
 import java.util.concurrent.{ ExecutorService, RejectedExecutionException }
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * The event-based ``Dispatcher`` binds a set of Actors to a thread pool backed up by a
@@ -40,10 +41,11 @@ class Dispatcher(
     def copy(): LazyExecutorServiceDelegate = new LazyExecutorServiceDelegate(factory)
   }
 
-  @volatile private var executorServiceDelegate: LazyExecutorServiceDelegate =
-    new LazyExecutorServiceDelegate(executorServiceFactoryProvider.createExecutorServiceFactory(id, threadFactory))
+  private val executorServiceDelegate: AtomicReference[LazyExecutorServiceDelegate] =
+    new AtomicReference(
+      new LazyExecutorServiceDelegate(executorServiceFactoryProvider.createExecutorServiceFactory(id, threadFactory)))
 
-  protected final def executorService: ExecutorServiceDelegate = executorServiceDelegate
+  protected final def executorService: ExecutorServiceDelegate = executorServiceDelegate.get()
 
   /**
    * INTERNAL API
@@ -92,12 +94,8 @@ class Dispatcher(
    * INTERNAL API
    */
   protected[akka] def shutdown: Unit = {
-    val newDelegate = executorServiceDelegate.copy() // Doesn't matter which one we copy
-    val es = synchronized {
-      val service = executorServiceDelegate
-      executorServiceDelegate = newDelegate // just a quick getAndSet
-      service
-    }
+    val newDelegate = executorServiceDelegate.get().copy() // Doesn't matter which one we copy
+    val es = executorServiceDelegate.getAndSet(newDelegate)
     es.shutdown()
   }
 
