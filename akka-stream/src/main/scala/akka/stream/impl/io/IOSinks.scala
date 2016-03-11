@@ -20,7 +20,9 @@ import scala.concurrent.{ Future, Promise }
  * (creating it before hand if necessary).
  */
 private[akka] final class FileSink(f: File, options: Set[StandardOpenOption], val attributes: Attributes, shape: SinkShape[ByteString])
-  extends SinkModule[ByteString, Future[IOResult]](shape) {
+    extends SinkModule[ByteString, Future[IOResult]](shape) {
+
+  override protected def label: String = s"FileSink($f, $options)"
 
   override def create(context: MaterializationContext) = {
     val materializer = ActorMaterializer.downcast(context.materializer)
@@ -47,7 +49,7 @@ private[akka] final class FileSink(f: File, options: Set[StandardOpenOption], va
  * (creating it before hand if necessary).
  */
 private[akka] final class OutputStreamSink(createOutput: () ⇒ OutputStream, val attributes: Attributes, shape: SinkShape[ByteString], autoFlush: Boolean)
-  extends SinkModule[ByteString, Future[IOResult]](shape) {
+    extends SinkModule[ByteString, Future[IOResult]](shape) {
 
   override def create(context: MaterializationContext) = {
     val materializer = ActorMaterializer.downcast(context.materializer)
@@ -68,4 +70,3 @@ private[akka] final class OutputStreamSink(createOutput: () ⇒ OutputStream, va
   override def withAttributes(attr: Attributes): Module =
     new OutputStreamSink(createOutput, attr, amendShape(attr), autoFlush)
 }
-
