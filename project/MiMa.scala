@@ -680,7 +680,16 @@ object MiMa extends AutoPlugin {
         ProblemFilters.exclude[FinalClassProblem]("akka.http.scaladsl.model.EntityStreamSizeException"),
 
         // #19849 content negotiation fixes
-        ProblemFilters.exclude[FinalClassProblem]("akka.http.scaladsl.marshalling.Marshal$UnacceptableResponseContentTypeException")
+        ProblemFilters.exclude[FinalClassProblem]("akka.http.scaladsl.marshalling.Marshal$UnacceptableResponseContentTypeException"),
+
+        // #19780
+        FilterAnyProblem("akka.remote.EndpointWriter$OutboundAck"),
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.remote.transport.AkkaPduProtobufCodec.constructPureAck"),
+        ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.remote.transport.AkkaPduCodec.constructPureAck"),
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.remote.transport.AkkaPduCodec.constructPureAck"),
+        ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.remote.WireFormats#AcknowledgementInfoOrBuilder.getOriginUid"),
+        ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.remote.WireFormats#AcknowledgementInfoOrBuilder.hasOriginUid")
+
       )
     )
   }
